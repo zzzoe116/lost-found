@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>校园失物招领小程序 · 交互原型</title>
+<style>
+  :root {
+    --primary: #2b7cf6;
+    --primary-light: #eaf2ff;
+    --lost: #ff8f1f;
+    --lost-light: #fff4e8;
+    --found: #14b8a6;
+    --found-light: #e6f8f6;
+    --text: #1f2329;
+    --text-2: #5f6672;
+    --text-3: #9aa1ab;
+    --line: #eef0f3;
+    --bg: #f6f7f9;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    padding: 28px 16px;
+    background: #eceff3;
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+  }
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .stage-title { font-size: 15px; color: var(--text-2); letter-spacing: .5px; }
+  .phone {
+    width: 375px;
+    height: 720px;
+    background: #fff;
+    border-radius: 34px;
+    box-shadow: 0 18px 46px rgba(31, 35, 41, .18);
+    border: 8px solid #1f2329;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .status-bar {
+    height: 30px;
+    flex: 0 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 11px;
+    color: var(--text-2);
+    background: #fff;
+  }
+  .navbar {
+    flex: 0 0 44px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 0 12px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .navbar .back {
+    width: 28px;
+    height: 28px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 17px;
+    color: var(--text);
+    border-radius: 50%;
+  }
+  .navbar .back:hover { background: var(--bg); }
+  .navbar .title {
+    position: absolute;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .body { flex: 1; overflow-y: auto; background: var(--bg); }
+  .body::-webkit-scrollbar { width: 0; }
+  .tabbar {
+    flex: 0 0 54px;
+    display: flex;
+    border-top: 1px solid var(--line);
+    background: #fff;
+  }
+  .tabbar .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 11px;
+    color: var(--text-3);
+    cursor: pointer;
+  }
+  .tabbar .tab .ico { font-size: 17px; line-height: 1; }
+  .tabbar .tab.on { color: var(--primary); }
+  .screen { display: none; flex-direction: column; height: 100%; }
+  .screen.on { display: flex; }
+
+  /* ---------- 首页 ---------- */
+  .home-head {
+    background: linear-gradient(160deg, #2b7cf6 0%, #56a2ff 100%);
+    padding: 14px 16px 44px;
+    color: #fff;
+  }
+  .home-head h2 { margin: 0 0 4px; font-size: 18px; }
+  .home-head p { margin: 0 0 12px; font-size: 12px; opacity: .9; }
+  .searchbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 9px 14px;
+    font-size: 13px;
+    color: var(--text-3);
+    cursor: pointer;
+  }
+  .quick {
+    margin: -30px 12px 0;
+    background: #fff;
+    border-radius: var(--radius);
+    display: flex;
+    box-shadow: 0 4px 14px rgba(31,35,41,.07);
+    position: relative;
+    z-index: 2;
+  }
+  .quick .q {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: var(--radius);
+  }
+  .quick .q:active { background: var(--bg); }
+  .quick .q .ico { font-size: 22px; }
+  .quick .q .t { font-size: 13px; font-weight: 600; margin-top: 6px; }
+  .quick .q .d { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .quick .split { width: 1px; background: var(--line); margin: 12px 0; }
+
+  .filter {
+    display: flex;
+    gap: 8px;
+    padding: 14px 12px 6px;
+  }
+  .chip {
+    padding: 5px 14px;
+    border-radius: 14px;
+    font-size: 12px;
+    background: #fff;
+    color: var(--text-2);
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .chip.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  .list { padding: 4px 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    border: 1px solid #fff;
+  }
+  .card:hover { border-color: #dbe6fb; }
+  .thumb {
+    width: 62px; height: 62px;
+    flex: 0 0 62px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    background: var(--bg);
+  }
+  .thumb.lost { background: var(--lost-light); }
+  .thumb.found { background: var(--found-light); }
+  .card .info { flex: 1; min-width: 0; }
+  .card .row1 { display: flex; align-items: center; gap: 6px; }
+  .card .name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag {
+    flex: 0 0 auto;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .tag.lost { color: var(--lost); background: var(--lost-light); }
+  .tag.found { color: var(--found); background: var(--found-light); }
+  .tag.done { color: var(--text-3); background: var(--bg); }
+  .card .meta { font-size: 11px; color: var(--text-3); margin-top: 6px; line-height: 1.7; }
+  .card .desc {
+    font-size: 12px; color: var(--text-2); margin-top: 6px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .empty { text-align: center; color: var(--text-3); font-size: 13px; padding: 60px 0; }
+
+  /* ---------- 表单 ---------- */
+  .form { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .segment { display: flex; background: #fff; border-radius: 10px; padding: 4px; }
+  .segment .seg {
+    flex: 1; text-align: center; padding: 9px 0; font-size: 13px;
+    border-radius: 8px; color: var(--text-2); cursor: pointer; font-weight: 600;
+  }
+  .segment .seg.on { background: var(--primary-light); color: var(--primary); }
+  .field {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 4px 12px;
+  }
+  .field .label {
+    font-size: 12px; color: var(--text-3); padding: 10px 0 2px;
+  }
+  .field .label .req { color: #f5222d; }
+  .field input, .field textarea, .field select {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    padding: 4px 0 10px;
+    background: transparent;
+    resize: none;
+  }
+  .field input::placeholder, .field textarea::placeholder { color: #c3c8cf; }
+  .field textarea { min-height: 66px; }
+  .picker {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 14px; padding: 6px 0 10px; cursor: pointer;
+  }
+  .picker .ph { color: #c3c8cf; }
+  .picker .arrow { color: var(--text-3); font-size: 12px; }
+  .upload {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0 12px;
+  }
+  .upload .box {
+    width: 66px; height: 66px; border: 1px dashed #ccd3dc; border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 11px; gap: 3px; cursor: pointer;
+  }
+  .upload .box .plus { font-size: 20px; line-height: 1; }
+  .tips { font-size: 11px; color: var(--text-3); padding: 0 4px; line-height: 1.6; }
+  .btn {
+    border: none; font-family: inherit; cursor: pointer;
+    border-radius: 22px; font-size: 15px; font-weight: 600;
+    padding: 12px 0; width: 100%;
+  }
+  .btn-main { background: var(--primary); color: #fff; }
+  .btn-main:active { background: #1f6fe0; }
+  .btn-ghost { background: #fff; color: var(--primary); border: 1px solid #cfe0fb; }
+
+  /* ---------- 发布成功 ---------- */
+  .result {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 10px; padding: 0 32px; background: #fff;
+  }
+  .result .circle {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: var(--found-light); color: var(--found);
+    display: flex; align-items: center; justify-content: center; font-size: 38px;
+  }
+  .result h3 { margin: 6px 0 0; font-size: 17px; }
+  .result p { margin: 0; font-size: 13px; color: var(--text-3); text-align: center; line-height: 1.7; }
+  .result .acts { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+
+  /* ---------- 搜索 ---------- */
+  .search-head { background: #fff; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+  .search-head .box {
+    flex: 1; display: flex; align-items: center; gap: 6px;
+    background: var(--bg); border-radius: 18px; padding: 8px 12px;
+  }
+  .search-head input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-size: 13px; font-family: inherit;
+  }
+  .search-head .cancel { font-size: 13px; color: var(--text-2); cursor: pointer; }
+  .sec { padding: 14px 12px 0; }
+  .sec .sec-title { font-size: 12px; color: var(--text-3); margin-bottom: 8px; }
+  .kw { display: flex; flex-wrap: wrap; gap: 8px; }
+  .kw span {
+    font-size: 12px; color: var(--text-2); background: #fff;
+    padding: 6px 12px; border-radius: 14px; cursor: pointer;
+  }
+  .kw span:hover { color: var(--primary); background: var(--primary-light); }
+  .filter-row { display: flex; gap: 8px; padding: 12px 12px 4px; flex-wrap: wrap; }
+  .res-head { font-size: 12px; color: var(--text-3); padding: 12px 12px 0; }
+
+  /* ---------- 详情 ---------- */
+  .detail-hero {
+    height: 190px; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; font-size: 76px;
+  }
+  .detail-card { background: #fff; padding: 14px 16px; }
+  .detail-card .name-row { display: flex; align-items: center; gap: 8px; }
+  .detail-card .name-row .name { font-size: 18px; font-weight: 600; }
+  .detail-card .status {
+    font-size: 11px; margin-left: auto; padding: 3px 8px; border-radius: 10px;
+    color: var(--primary); background: var(--primary-light);
+  }
+  .detail-card .status.done { color: var(--text-3); background: var(--bg); }
+  .detail-card .desc { font-size: 13px; color: var(--text-2); line-height: 1.8; margin-top: 12px; }
+  .rows { background: #fff; margin-top: 10px; padding: 4px 16px; }
+  .rows .r {
+    display: flex; justify-content: space-between;
+    font-size: 13px; padding: 12px 0; border-bottom: 1px solid var(--line);
+  }
+  .rows .r:last-child { border-bottom: none; }
+  .rows .r .k { color: var(--text-3); }
+  .rows .r .v { color: var(--text); }
+  .publisher { background: #fff; margin-top: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .publisher .avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--primary-light);
+    color: var(--primary); display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600;
+  }
+  .publisher .pu-info { flex: 1; }
+  .publisher .pu-name { font-size: 13px; font-weight: 600; }
+  .publisher .pu-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+  .notice {
+    font-size: 11px; color: var(--text-3); line-height: 1.7;
+    padding: 12px 16px 20px;
+  }
+  .detail-actions {
+    flex: 0 0 62px; display: flex; gap: 10px; align-items: center;
+    padding: 8px 12px; background: #fff; border-top: 1px solid var(--line);
+  }
+  .detail-actions .btn { padding: 11px 0; }
+  .detail-actions .btn-ghost { flex: 0 0 108px; }
+
+  /* ---------- 我的发布 ---------- */
+  .mine-head {
+    background: linear-gradient(160deg, #2b7cf6 0%, #56a2ff 100%);
+    padding: 16px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .mine-head .avatar {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(255,255,255,.24);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 600;
+  }
+  .mine-head .nm { font-size: 15px; font-weight: 600; }
+  .mine-head .sub { font-size: 11px; opacity: .9; margin-top: 3px; }
+  .my-item { background: #fff; border-radius: var(--radius); padding: 12px; }
+  .my-item .top { display: flex; align-items: center; gap: 8px; }
+  .my-item .top .name { font-size: 14px; font-weight: 600; flex: 1; }
+  .my-item .top select {
+    font-size: 11px; border: 1px solid var(--line); border-radius: 6px;
+    padding: 3px 6px; color: var(--text-2); outline: none; background: #fff;
+  }
+  .my-item .acts { display: flex; justify-content: flex-end; gap: 16px; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .my-item .acts span { font-size: 12px; color: var(--primary); cursor: pointer; }
+  .my-item .acts span.danger { color: #f5222d; }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(.94);
+    background: rgba(31,35,41,.86); color: #fff;
+    font-size: 13px; padding: 10px 18px; border-radius: 8px;
+    opacity: 0; pointer-events: none; transition: .18s; text-align: center; max-width: 250px;
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  /* ---------- 说明面板 ---------- */
+  .side { width: 300px; font-size: 13px; color: var(--text-2); line-height: 1.9; }
+  .side h3 { font-size: 15px; color: var(--text); margin: 0 0 8px; }
+  .side .note { background: #fff; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+  .side ul { margin: 6px 0 0; padding-left: 18px; }
+  .side li { margin: 4px 0; }
+  .side .kbd {
+    display: inline-block; background: #fff; border: 1px solid var(--line);
+    border-radius: 4px; padding: 0 5px; font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-title">校园失物招领小程序 · 可点击交互原型</div>
+  <div class="phone">
+    <div class="status-bar"><span>9:41</span><span>校园网 · 100%</span></div>
+    <div class="navbar">
+      <div class="back" id="backBtn">‹</div>
+      <div class="title" id="navTitle">失物招领</div>
+    </div>
+
+    <div class="body" id="body">
+
+      <!-- ============ 1. 首页 ============ -->
+      <section class="screen on" id="s-home">
+        <div class="home-head">
+          <h2>校园失物招领</h2>
+          <p>找东西、还东西，都在这一个池子里</p>
+          <div class="searchbar" onclick="go('search')">🔍 搜索物品名称，如「校园卡」「耳机」</div>
+        </div>
+        <div class="quick">
+          <div class="q" onclick="goPublish('lost')">
+            <div class="ico">🔎</div><div class="t">发布寻物</div><div class="d">我丢了东西</div>
+          </div>
+          <div class="split"></div>
+          <div class="q" onclick="goPublish('found')">
+            <div class="ico">🙌</div><div class="t">发布招领</div><div class="d">我捡到东西</div>
+          </div>
+        </div>
+        <div class="filter">
+          <div class="chip on" data-f="all" onclick="setFilter('all', this)">全部</div>
+          <div class="chip" data-f="lost" onclick="setFilter('lost', this)">寻物</div>
+          <div class="chip" data-f="found" onclick="setFilter('found', this)">招领</div>
+        </div>
+        <div class="list" id="homeList"></div>
+      </section>
+
+      <!-- ============ 2. 发布信息 ============ -->
+      <section class="screen" id="s-publish">
+        <div class="form">
+          <div class="segment">
+            <div class="seg on" id="seg-lost" onclick="setType('lost')">发布寻物</div>
+            <div class="seg" id="seg-found" onclick="setType('found')">发布招领</div>
+          </div>
+          <div class="field">
+            <div class="label">物品名称 <span class="req">*</span></div>
+            <input id="f-name" placeholder="例如：黑色雨伞 / 一卡通">
+          </div>
+          <div class="field">
+            <div class="label">物品类别 <span class="req">*</span></div>
+            <select id="f-cate">
+              <option>校园卡/证件</option>
+              <option>钥匙</option>
+              <option>水杯</option>
+              <option>雨伞</option>
+              <option>耳机</option>
+              <option>书籍/资料</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="label">地点 <span class="req">*</span></div>
+            <input id="f-place" placeholder="例如：紫金楼 302 教室 / 三区食堂二楼">
+          </div>
+          <div class="field">
+            <div class="label">时间 <span class="req">*</span></div>
+            <input id="f-time" placeholder="例如：2026-09-24 下午 3 点左右">
+          </div>
+          <div class="field">
+            <div class="label">补充描述</div>
+            <textarea id="f-desc" placeholder="颜色、特征、有无姓名贴等，描述越详细越容易被认出来"></textarea>
+          </div>
+          <div class="field">
+            <div class="label">物品照片（选填，最多 3 张）</div>
+            <div class="upload">
+              <div class="box" onclick="toast('原型演示：此处调用微信相册/相机')">
+                <div class="plus">+</div><div>添加照片</div>
+              </div>
+              <div class="box" onclick="toast('原型演示：此处调用微信相册/相机')">
+                <div class="plus">+</div><div>添加照片</div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label">联系方式 <span class="req">*</span></div>
+            <input id="f-contact" placeholder="微信号 / QQ / 手机号（仅对方点击后可见）">
+          </div>
+          <div class="tips">发布后可在「我的发布」中修改信息状态为「已找到 / 已归还」。</div>
+          <button class="btn btn-main" onclick="submitPublish()">发布</button>
+        </div>
+      </section>
+
+      <!-- ============ 3. 发布成功 ============ -->
+      <section class="screen" id="s-success">
+        <div class="result">
+          <div class="circle">✓</div>
+          <h3>发布成功</h3>
+          <p id="successTip">你的寻物信息已经发布啦<br>有线索的同学可以通过详情页联系你</p>
+          <div class="acts">
+            <button class="btn btn-main" onclick="go('detail')">查看详情</button>
+            <button class="btn btn-ghost" onclick="goPublish(currentType)">继续发布</button>
+            <button class="btn btn-ghost" onclick="go('home')">返回首页</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 4. 搜索 ============ -->
+      <section class="screen" id="s-search">
+        <div class="search-head">
+          <div class="box">
+            <span>🔍</span>
+            <input id="kw" placeholder="输入物品名称 / 关键词" oninput="doSearch()">
+          </div>
+          <div class="cancel" onclick="go('home')">取消</div>
+        </div>
+        <div id="searchHot">
+          <div class="sec">
+            <div class="sec-title">热门搜索</div>
+            <div class="kw">
+              <span onclick="quickKw('校园卡')">校园卡</span>
+              <span onclick="quickKw('钥匙')">钥匙</span>
+              <span onclick="quickKw('雨伞')">雨伞</span>
+              <span onclick="quickKw('耳机')">耳机</span>
+              <span onclick="quickKw('水杯')">水杯</span>
+              <span onclick="quickKw('充电宝')">充电宝</span>
+            </div>
+          </div>
+          <div class="sec">
+            <div class="sec-title">快捷筛选</div>
+            <div class="kw">
+              <span onclick="quickKw('紫金楼')">紫金楼</span>
+              <span onclick="quickKw('图书馆')">图书馆</span>
+              <span onclick="quickKw('三区食堂')">三区食堂</span>
+              <span onclick="quickKw('一区宿舍')">一区宿舍</span>
+            </div>
+          </div>
+        </div>
+        <div id="searchResult" style="display:none">
+          <div class="filter-row">
+            <div class="chip on" data-sf="all" onclick="setSFilter('all', this)">全部</div>
+            <div class="chip" data-sf="lost" onclick="setSFilter('lost', this)">寻物</div>
+            <div class="chip" data-sf="found" onclick="setSFilter('found', this)">招领</div>
+            <div class="chip" data-sf="done" onclick="setSFilter('done', this)">已完成</div>
+          </div>
+          <div class="res-head" id="resHead"></div>
+          <div class="list" id="resList"></div>
+        </div>
+      </section>
+
+      <!-- ============ 5. 信息详情 ============ -->
+      <section class="screen" id="s-detail">
+        <div class="detail-hero" id="d-hero">🎒</div>
+        <div class="detail-card">
+          <div class="name-row">
+            <span class="name" id="d-name">黑色雨伞</span>
+            <span class="tag lost" id="d-tag">寻物</span>
+            <span class="status" id="d-status">进行中</span>
+          </div>
+          <div class="desc" id="d-desc"></div>
+        </div>
+        <div class="rows">
+          <div class="r"><span class="k" id="d-place-k">丢失地点</span><span class="v" id="d-place">紫金楼 302</span></div>
+          <div class="r"><span class="k" id="d-time-k">丢失时间</span><span class="v" id="d-time">2026-09-24 15:00</span></div>
+          <div class="r"><span class="k">物品类别</span><span class="v" id="d-cate">雨伞</span></div>
+          <div class="r"><span class="k">信息编号</span><span class="v" id="d-id">LF20260924001</span></div>
+        </div>
+        <div class="publisher">
+          <div class="avatar" id="d-avatar">林</div>
+          <div class="pu-info">
+            <div class="pu-name" id="d-pub">林同学</div>
+            <div class="pu-sub" id="d-pub-sub">计算机与大数据学院 · 9 月 24 日发布</div>
+          </div>
+          <div class="cancel" style="font-size:12px;color:#2b7cf6;cursor:pointer" onclick="toast('原型演示：进入与发布者的会话')">联系 TA</div>
+        </div>
+        <div class="notice">为保护同学隐私，联系方式默认隐藏，点击上方「联系 TA」后显示；请勿在公开评论中留下个人信息，谨防冒领与诈骗。</div>
+        <div class="detail-actions">
+          <button class="btn btn-ghost" onclick="toast('已提交举报，等待管理员处理')">举报</button>
+          <button class="btn btn-main" onclick="toast('原型演示：展示发布者联系方式')">查看联系方式</button>
+        </div>
+      </section>
+
+      <!-- ============ 6. 我的发布 ============ -->
+      <section class="screen" id="s-mine">
+        <div class="mine-head">
+          <div class="avatar">O</div>
+          <div>
+            <div class="nm">Otonash1</div>
+            <div class="sub">计算机与大数据学院 · 我的发布</div>
+          </div>
+        </div>
+        <div class="list" style="margin-top:12px" id="mineList"></div>
+      </section>
+
+    </div>
+
+    <div class="tabbar" id="tabbar">
+      <div class="tab on" data-tab="home" onclick="go('home')"><span class="ico">🏠</span>首页</div>
+      <div class="tab" data-tab="publish" onclick="goPublish(currentType)"><span class="ico">➕</span>发布</div>
+      <div class="tab" data-tab="mine" onclick="go('mine')"><span class="ico">👤</span>我的发布</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<div class="side">
+  <div class="note">
+    <h3>原型说明</h3>
+    微信小程序风格的高保真交互原型，单文件 HTML 实现，可用浏览器直接打开、点击体验。
+  </div>
+  <div class="note">
+    <h3>已实现的演示流程</h3>
+    <ul>
+      <li>首页浏览信息 → 查看详情</li>
+      <li>首页「发布寻物 / 发布招领」→ 填写表单 → 发布成功</li>
+      <li>首页搜索框 → 输入关键词（可试「校园卡」「钥匙」）→ 查看搜索结果 → 详情</li>
+      <li>「我的发布」→ 修改信息状态 / 编辑 / 删除</li>
+    </ul>
+  </div>
+  <div class="note">
+    <h3>页面清单</h3>
+    <ul>
+      <li>首页（信息列表 + 筛选）</li>
+      <li>发布信息页</li>
+      <li>发布成功页</li>
+      <li>搜索页（含搜索结果）</li>
+      <li>信息详情页</li>
+      <li>我的发布页</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+/* ================= 数据 ================= */
+const ITEMS = [
+  { id: 'LF20260924001', name: '黑色长柄雨伞', type: 'lost', cate: '雨伞', icon: '☂️', place: '紫金楼 302 教室', time: '2026-09-24 15:00', pub: '林同学', pubSub: '计算机与大数据学院 · 9 月 24 日发布', contact: '微信 lf_0924', status: 'open',
+    desc: '黑色八骨长柄伞，伞柄上贴有一张写名字的白色标签，伞面有一处小修补痕迹。' },
+  { id: 'LF20260924002', name: '校园卡（一卡通）', type: 'found', cate: '校园卡/证件', icon: '💳', place: '三区食堂二楼', time: '2026-09-24 12:20', pub: '陈同学', pubSub: '土木工程学院 · 9 月 24 日发布', contact: '手机 138****6621', status: 'open',
+    desc: '在三区食堂二楼靠窗餐桌上捡到，卡面有轻微磨损，姓名首字为「陈」，已交至食堂一楼服务台暂存。' },
+  { id: 'LF20260924003', name: '校园卡（一卡通）', type: 'lost', cate: '校园卡/证件', icon: '💳', place: '图书馆一楼大厅', time: '2026-09-24 09:40', pub: '郑同学', pubSub: '数学与统计学院 · 9 月 24 日发布', contact: '微信 zheng_card', status: 'open',
+    desc: '卡面贴有一张透明保护膜，姓名首字为「郑」，9 月 24 日上午在图书馆一楼刷卡进馆后发现丢失。' },
+  { id: 'LF20260923001', name: '白色蓝牙耳机盒', type: 'lost', cate: '耳机', icon: '🎧', place: '图书馆 4 楼自习区', time: '2026-09-23 20:40', pub: '吴同学', pubSub: '外国语学院 · 9 月 23 日发布', contact: 'QQ 1024***88', status: 'open',
+    desc: '白色充电仓，盒盖上有一道细细的划痕，里面是两只入耳式耳机。' },
+  { id: 'LF20260923002', name: '一串宿舍钥匙', type: 'found', cate: '钥匙', icon: '🔑', place: '一区 7 号楼楼下', time: '2026-09-23 18:05', pub: '王同学', pubSub: '物理与信息工程学院 · 9 月 23 日发布', contact: '微信 wang_7h', status: 'open',
+    desc: '三把钥匙串在一个蓝色挂绳上，挂绳末端有一个小玩偶挂件。' },
+  { id: 'LF20260922001', name: '银色保温水杯', type: 'lost', cate: '水杯', icon: '🥤', place: '田径场看台', time: '2026-09-22 17:30', pub: '张同学', pubSub: '经济与管理学院 · 9 月 22 日发布', contact: '微信 zhang_cup', status: 'open',
+    desc: '银色不锈钢保温杯，杯底有一圈黑色防滑垫，杯身有轻微凹痕。' },
+  { id: 'LF20260922002', name: '《数据结构》课本', type: 'found', cate: '书籍/资料', icon: '📚', place: '东二教学楼 201', time: '2026-09-22 16:10', pub: '李同学', pubSub: '计算机与大数据学院 · 9 月 22 日发布', contact: 'QQ 771***20', status: 'done',
+    desc: '课本扉页写有姓名，已联系到失主并当面归还。' },
+  { id: 'LF20260921001', name: '粉色充电宝', type: 'lost', cate: '其他', icon: '🔋', place: '校医院门口', time: '2026-09-21 09:15', pub: '赵同学', pubSub: '生物科学与工程学院 · 9 月 21 日发布', contact: '微信 zhao_pb', status: 'done',
+    desc: '粉色外壳，10000 mAh，侧面有一处贴纸。已由好心同学送回。' }
+];
+const CATE_ICON = { '校园卡/证件': '💳', '钥匙': '🔑', '水杯': '🥤', '雨伞': '☂️', '耳机': '🎧', '书籍/资料': '📚', '其他': '🎒' };
+const MINE_IDS = ['LF20260924001', 'LF20260923002'];
+
+/* ================= 状态 ================= */
+let currentType = 'lost';
+let homeFilter = 'all';
+let searchFilter = 'all';
+let currentItem = ITEMS[0];
+let history = [];
+
+/* ================= 工具 ================= */
+const $ = (id) => document.getElementById(id);
+
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('on'), 1600);
+}
+
+const TITLES = { home: '失物招领', publish: '发布信息', success: '发布成功', search: '搜索', detail: '信息详情', mine: '我的发布' };
+
+function render(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  $('s-' + screen).classList.add('on');
+  $('navTitle').textContent = TITLES[screen];
+  $('backBtn').style.display = (screen === 'home' || screen === 'mine') ? 'none' : 'flex';
+  $('body').scrollTop = 0;
+  document.querySelectorAll('.tabbar .tab').forEach(t => {
+    t.classList.toggle('on', t.dataset.tab === (screen === 'detail' ? 'home' : screen));
+  });
+  $('tabbar').style.display = (screen === 'detail' || screen === 'success') ? 'none' : 'flex';
+}
+
+function go(screen) {
+  if (screen !== history[history.length - 1]) history.push(screen);
+  render(screen);
+}
+
+function back() { history.pop(); render(history.pop() || 'home'); }
+
+$('backBtn').onclick = back;
+
+/* ================= 列表渲染 ================= */
+function cardHTML(item) {
+  const typeText = item.type === 'lost' ? '寻物' : '招领';
+  const done = item.status === 'done';
+  return `<div class="card" onclick="openDetail('${item.id}')">
+    <div class="thumb ${item.type}">${item.icon}</div>
+    <div class="info">
+      <div class="row1">
+        <span class="name">${item.name}</span>
+        ${done ? '<span class="tag done">已完成</span>' : `<span class="tag ${item.type}">${typeText}</span>`}
+      </div>
+      <div class="meta">📍 ${item.place}<br>🕒 ${item.time}</div>
+      <div class="desc">${item.desc}</div>
+    </div>
+  </div>`;
+}
+
+function renderHome() {
+  const list = homeFilter === 'all' ? ITEMS : ITEMS.filter(i => i.type === homeFilter);
+  $('homeList').innerHTML = list.map(cardHTML).join('') || '<div class="empty">暂时还没有信息</div>';
+}
+
+function renderMine() {
+  const list = ITEMS.filter(i => MINE_IDS.includes(i.id));
+  $('mineList').innerHTML = list.map(item => `
+    <div class="my-item">
+      <div class="top">
+        <span class="tag ${item.type}">${item.type === 'lost' ? '寻物' : '招领'}</span>
+        <span class="name">${item.name}</span>
+        <select onchange="changeStatus('${item.id}', this)">
+          <option value="open"${item.status === 'open' ? ' selected' : ''}>进行中</option>
+          <option value="done"${item.status === 'done' ? ' selected' : ''}>已完成</option>
+        </select>
+      </div>
+      <div class="meta" style="font-size:11px;color:#9aa1ab;margin-top:8px;line-height:1.7">
+        📍 ${item.place}<br>🕒 ${item.time}
+      </div>
+      <div class="acts">
+        <span onclick="openDetail('${item.id}')">查看</span>
+        <span onclick="toast('原型演示：进入编辑页面')">编辑</span>
+        <span class="danger" onclick="toast('原型演示：二次确认后删除')">删除</span>
+      </div>
+    </div>`).join('');
+}
+
+function changeStatus(id, el) {
+  const item = ITEMS.find(i => i.id === id);
+  item.status = el.value;
+  renderHome();
+  toast(el.value === 'done' ? '已标记为「已完成」' : '已恢复为「进行中」');
+}
+
+function setFilter(f, el) {
+  homeFilter = f;
+  document.querySelectorAll('.filter .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderHome();
+}
+
+/* ================= 搜索 ================= */
+function doSearch() {
+  const kw = $('kw').value.trim();
+  if (!kw) {
+    $('searchHot').style.display = 'block';
+    $('searchResult').style.display = 'none';
+    return;
+  }
+  $('searchHot').style.display = 'none';
+  $('searchResult').style.display = 'block';
+  let list = ITEMS.filter(i =>
+    (i.name + i.cate + i.place + i.desc).toLowerCase().includes(kw.toLowerCase())
+  );
+  if (searchFilter === 'done') list = list.filter(i => i.status === 'done');
+  else if (searchFilter !== 'all') list = list.filter(i => i.type === searchFilter);
+  $('resHead').textContent = `找到 ${list.length} 条与「${kw}」相关的信息`;
+  $('resList').innerHTML = list.map(cardHTML).join('') || '<div class="empty">没有找到相关信息，换个关键词试试</div>';
+}
+
+function quickKw(kw) { $('kw').value = kw; doSearch(); }
+
+function setSFilter(f, el) {
+  searchFilter = f;
+  document.querySelectorAll('.filter-row .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  doSearch();
+}
+
+/* ================= 详情 ================= */
+function openDetail(id) {
+  const item = ITEMS.find(i => i.id === id);
+  if (!item) return;
+  currentItem = item;
+  $('d-hero').textContent = item.icon;
+  $('d-name').textContent = item.name;
+  const tag = $('d-tag');
+  tag.textContent = item.type === 'lost' ? '寻物' : '招领';
+  tag.className = 'tag ' + item.type;
+  const st = $('d-status');
+  st.textContent = item.status === 'done' ? '已完成' : '进行中';
+  st.className = 'status' + (item.status === 'done' ? ' done' : '');
+  $('d-desc').textContent = item.desc;
+  $('d-place-k').textContent = item.type === 'lost' ? '丢失地点' : '拾获地点';
+  $('d-place').textContent = item.place;
+  $('d-time-k').textContent = item.type === 'lost' ? '丢失时间' : '拾获时间';
+  $('d-time').textContent = item.time;
+  $('d-cate').textContent = item.cate;
+  $('d-id').textContent = item.id;
+  $('d-avatar').textContent = item.pub.charAt(0);
+  $('d-pub').textContent = item.pub;
+  $('d-pub-sub').textContent = item.pubSub;
+  go('detail');
+}
+
+/* ================= 发布 ================= */
+function goPublish(type) {
+  setType(type);
+  go('publish');
+}
+
+function setType(type) {
+  currentType = type;
+  $('seg-lost').classList.toggle('on', type === 'lost');
+  $('seg-found').classList.toggle('on', type === 'found');
+  document.querySelectorAll('#s-publish .label .req').forEach(() => {});
+  $('s-publish').querySelectorAll('.field .label')[3].innerHTML = '补充描述';
+}
+
+function submitPublish() {
+  const name = $('f-name').value.trim();
+  const place = $('f-place').value.trim();
+  const time = $('f-time').value.trim();
+  const contact = $('f-contact').value.trim();
+  if (!name) { toast('请填写物品名称'); return; }
+  if (!place) { toast('请填写地点'); return; }
+  if (!time) { toast('请填写时间'); return; }
+  if (!contact) { toast('请填写联系方式'); return; }
+
+  const item = {
+    id: 'LF' + Date.now().toString().slice(-8),
+    name, type: currentType, cate: $('f-cate').value,
+    icon: CATE_ICON[$('f-cate').value] || '🎒',
+    place, time,
+    pub: 'Otonash1', pubSub: '计算机与大数据学院 · 刚刚发布',
+    contact, status: 'open',
+    desc: $('f-desc').value.trim() || '（暂无补充描述）'
+  };
+  ITEMS.unshift(item);
+  MINE_IDS.unshift(item.id);
+  currentItem = item;
+  $('successTip').innerHTML = currentType === 'lost'
+    ? '你的寻物信息已经发布啦<br>有线索的同学可以通过详情页联系你'
+    : '你的招领信息已经发布啦<br>谢谢你的热心，失主可以联系你认领';
+  renderHome();
+  renderMine();
+  go('success');
+  ['f-name', 'f-place', 'f-time', 'f-desc', 'f-contact'].forEach(id => $(id).value = '');
+}
+
+/* ================= 初始化 ================= */
+/* 支持用 #页面名 直达某个页面，例如 index.html#detail、index.html#search */
+renderHome();
+renderMine();
+(function init() {
+  const raw = (location.hash || '').replace('#', '');
+  const [start, queryStr] = raw.split('?');
+  const params = new URLSearchParams(queryStr || '');
+  if (start === 'detail') { openDetail(params.get('id') || ITEMS[0].id); return; }
+  if (start === 'search') {
+    render('search');
+    history = ['home', 'search'];
+    if (params.get('kw')) { $('kw').value = params.get('kw'); doSearch(); }
+    return;
+  }
+  if (start === 'publish') { goPublish(params.get('type') === 'found' ? 'found' : 'lost'); return; }
+  if (TITLES[start] && start !== 'home') { render(start); history = [start]; return; }
+  render('home');
+  history = ['home'];
+})();
+</script>
+</body>
+</html>
