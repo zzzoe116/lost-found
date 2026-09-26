@@ -36,7 +36,8 @@
   .stage { display: flex; flex-direction: column; align-items: center; gap: 14px; }
   .stage-title { font-size: 15px; color: var(--text-2); letter-spacing: .5px; }
   /* 导出「纯净屏幕」截图（用于导入墨刀）：index.html?clean=1 */
-  .clean body { padding: 0; background: #fff; gap: 0; }
+  .clean body { padding: 0; background: #fff; gap: 0; display: block; }
+  .clean .stage { display: block; }
   .clean .stage-title, .clean .side { display: none; }
   .clean .phone { border: none; border-radius: 0; box-shadow: none; }
   /* 导出「整页」长截图（发布页较长）：在网址后加 tall=1 */
